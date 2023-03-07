@@ -14,6 +14,8 @@ long stepClick = 0;
 std::map<int, std::vector<int>> dataMemory;
 std::map<int, std::vector<int>> instructionMemory;
 
+
+
 int main() {
     cout<<reg[2]<<"\n";
     init();

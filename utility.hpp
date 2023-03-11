@@ -69,7 +69,7 @@ std::string ProcessorMemoryInterface() {
         std::vector<std::string> t = instructionMemory[MAR];
         std::string ans = "";
         long long x = t.size();
-        for(long long i = 0; i < x; ++i) ans+=(t[x-1-i]+'0');
+        for(long long i = 0; i < x; ++i) ans+=(t[x-1-i]);
         ans = "0x"+ans;
         return ans;
     }

@@ -88,6 +88,12 @@ void GenerateControlSignals(long long reg_write,long long MuxB,long long MuxY,lo
     numBytes = numB;
 }
 
+void fetch() {
+    MAR = strtoll(("0x"+hex(PC)).c_str(), nullptr, 16);
+    MuxMA_select = 1;
+    IR = strtoll(ProcessorMemoryInterface().c_str(), nullptr, 16);
+    PC_Temp = PC+4;
+}
 
 // ---------------------------------------------FLOWCHART---------------------------------------------//
 /*          

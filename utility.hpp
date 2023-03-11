@@ -90,65 +90,49 @@ void GenerateControlSignals(long long reg_write,long long MuxB,long long MuxY,lo
 
 
 // ---------------------------------------------FLOWCHART---------------------------------------------//
-/*          
+/*
                                                 R TYPE
-
-OPCODE          func3           func7       Instruction
-0110011          0x0            0x00            add
-0110011          0x0            0x20            sub
-0110011          0x0            0x01            mul
-
-0110011          0x7            0x00            and
-
-0110011          0x6            0x00            or
-0110011          0x6            0x01            rem
-
-0110011          0x1            0x00            sll
-
-0110011          0x2            0x00            slt
-
-0110011          0x5            0x00            srl
-0110011          0x5            0x20            sra
-
-0110011          0x4            0x00            xor
-0110011          0x4            0x01            div
-
+OPCODE          func3           func7       Instruction    ALUop(ON)
+0110011          0x0            0x00            add         0
+0110011          0x0            0x20            sub         1
+0110011          0x0            0x01            mul         3
+0110011          0x7            0x00            and         10
+0110011          0x6            0x00            or          9
+0110011          0x6            0x01            rem         4
+0110011          0x1            0x00            sll         6
+0110011          0x2            0x00            slt         11
+0110011          0x5            0x00            srl         8
+0110011          0x5            0x20            sra         7
+0110011          0x4            0x00            xor         5
+0110011          0x4            0x01            div         2
                                                 I TYPE
-
-OPCODE          func3           Instruction
+OPCODE          func3           Instruction     ALUop(ON)
 0000011          0x0                lb
 0000011          0x1                lh
 0000011          0x2                lw
-
 0010011          0x0                addi
 0010011          0x7                andi
 0010011          0x6                ori
-
-
 1100111          0x0                jalr
-
                                                 S TYPE
-
 OPCODE          func3           Instruction
 0100011          0x0                sb
 0100011          0x1                sh
 0100011          0x2                sw
-
 */
 
 // ---------------------------------------------------------------------------------------------------//
 
+std::string message = "";
 void Decode() {
 
-    for(auto &i : ALUOp) i = 0; 
+    for(auto &i : ALUOp) i = 0;
 
     long long func3, func7;
-    std::string message = "";
-
+    
     opcode = IR & 0x7f;                     // Finding Opcode
     func3 = (IR & 0x7000) >> 12;            // Finding Func3
-
-
+    
     if(opcode == 51){
         // R Format
         GenerateControlSignals(1,0,0,0,0,0,1,0,4);
@@ -156,10 +140,10 @@ void Decode() {
         RS1 = (IR & 0xF8000) >> 15;         // Setting Source1 Register
         RS2 = (IR & 0x1F00000) >> 20;       // Setting Source2 Register
         func7 = (IR & 0xFE000000) >> 25;    // Setting Func7
-
+        
         if(func3 == 0x0){   // add/sub/mul
-            if(func7 == 0x00){ 
-                // add Instruction 
+            if(func7 == 0x00){
+                // add Instruction
                 ALUOp[0] = 1;
                 message = "This is Add Instruction.";
             }
@@ -267,7 +251,7 @@ void Decode() {
         RA = reg[RS1];      // Setting RA
         RB = reg[RS2];      // Setting RB
         RM = RB;            // Setting RM
-
+        
     }
     else if(opcode == 19 || opcode == 3 || opcode == 103){  // I Format
         
@@ -284,8 +268,8 @@ void Decode() {
                 message = "This is Lb Instruction.";
                 GenerateControlSignals(1,1,1,1,0,0,1,0,1);
             }
-            else if(func3 == 0x1){ 
-                // lh Instruction 
+            else if(func3 == 0x1){
+                // lh Instruction
                 message = "This is Lh Instruction.";
                 GenerateControlSignals(1,1,1,1,0,0,1,0,2);
             }
@@ -300,7 +284,7 @@ void Decode() {
             }
 
             RA = reg[RS1];      // Setting RA
-            // RB and RM are don't cares    
+            // RB and RM are don't cares
         }
         else if(opcode == 19){  // addi/andi/ori
             GenerateControlSignals(1,1,0,0,0,0,1,0,4);
@@ -349,7 +333,7 @@ void Decode() {
         long long immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
         long long immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
         immed = immed_4to0 | immed_11to5;           // Setting immediate
-        // ImmediateSign(12);  
+        // ImmediateSign(12);
         ALUOp[0] = 1;
         if(func3 == 0x0){
             // sb Instruction
@@ -374,5 +358,141 @@ void Decode() {
         RA = reg[RS2];      // Setting RA
         RB = reg[RS1];      // Setting RB
         RM = RB;            // Setting RM
+    }
+    
+}
+
+
+
+
+// ---------------------------------------------FLOWCHART---------------------------------------------//
+/*
+                                                R TYPE
+OPCODE          func3           func7       Instruction    ALUop(ON)
+0110011          0x0            0x00            add         0
+0110011          0x0            0x20            sub         1
+0110011          0x0            0x01            mul         3
+0110011          0x7            0x00            and         10
+0110011          0x6            0x00            or          9
+0110011          0x6            0x01            rem         4
+0110011          0x1            0x00            sll         6
+0110011          0x2            0x00            slt         11
+0110011          0x5            0x00            srl         8
+0110011          0x5            0x20            sra         7
+0110011          0x4            0x00            xor         5
+0110011          0x4            0x01            div         2
+                                                I TYPE
+OPCODE          func3           Instruction
+0000011          0x0                lb
+0000011          0x1                lh
+0000011          0x2                lw
+0010011          0x0                addi
+0010011          0x7                andi
+0010011          0x6                ori
+1100111          0x0                jalr
+                                                S TYPE
+OPCODE          func3           Instruction
+0100011          0x0                sb
+0100011          0x1                sh
+0100011          0x2                sw
+*/
+
+// ---------------------------------------------------------------------------------------------------//
+
+void Execute()
+{
+    long long i=0;
+    if(opcode==51)  //R format
+    {
+        for(auto &val :ALUOp)
+        {
+            if(val==1)
+            {
+                switch (i)
+                {
+                    case 0:
+                    {
+                        reg[RD]=RA+RB;
+                        break;
+                    }
+                        
+                    case 1:
+                    {
+                        reg[RD]=RA-RB;
+                        break;
+                    }
+                        
+                    case 2:
+                    {
+                        if(RB!=0)//checking denominator!=0
+                            reg[RD]=RA/RB;
+                        break;
+                    }
+                        
+                    case 3:
+                    {
+                        reg[RD]=RA*RB;
+                        break;
+                    }
+                        
+                    case 4:
+                    {
+                        reg[RD]=RA%RB;
+                        break;
+                    }
+                    case 5:
+                    {
+                        reg[RD]=RA^RB;
+                        break;
+                    }
+                        
+                    case 6:
+                    {
+                        reg[RD]=RA<<RB;
+                        break;
+                    }
+                    case 7:
+                    {
+                        reg[RD]=RA>>RB;
+                        break;
+                    }
+                    case 8:
+                    {
+                        reg[RD]=RA>>RB;
+                        break;
+                    }
+                    case 9:
+                    {
+                        reg[RD]=RA|RB;
+                        break;
+                    }
+                    case 10:
+                    {
+                        reg[RD]=RA&RB;
+                        break;
+                    }
+                    case 11:
+                    {
+                        if(RA<RB)
+                        {
+                            reg[RD]=1;
+                        }
+                        else
+                        {
+                            reg[RD]=0;
+                        }
+                        break;
+                    }
+                        
+                        
+                        
+                    default:
+                    {
+                        break;
+                    }
+                }
+            }
+            i++;
+        }
     }
 }

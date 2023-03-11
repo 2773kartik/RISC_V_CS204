@@ -95,6 +95,15 @@ void fetch() {
     PC_Temp = PC+4;
 }
 
+void ImmediateSign(int num) {
+    if(immed & ((1 << num) - 1) == 0)
+        return;
+    immed ^= (1 << num) - 1;
+    immed += 1;
+    immed *= -1;
+}
+
+
 // ---------------------------------------------FLOWCHART---------------------------------------------//
 /*          
                                                 R TYPE
@@ -355,7 +364,7 @@ void Decode() {
         long long immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
         long long immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
         immed = immed_4to0 | immed_11to5;           // Setting immediate
-        // ImmediateSign(12);  
+        ImmediateSign(12);  
         ALUOp[0] = 1;
         if(func3 == 0x0){
             // sb Instruction
@@ -381,4 +390,74 @@ void Decode() {
         RB = reg[RS1];      // Setting RB
         RM = RB;            // Setting RM
     }
+    else if(opcode == 99) { // SB format
+        RS1 = (IR & 0xF8000) >> 15;  // Setting Source1 Register
+        RS2 = (IR & 0x1F00000) >> 20;  // Setting Source2 Register
+        RA = reg[RS1];  // Setting RA
+        RB = reg[RS2];  // Setting RB
+        long long imm1 = (IR & 0xF80) >> 7;
+        long long imm2 = (IR & 0x7E000000) >> 25;
+        immed = 0;
+        immed |= ((imm1 & 0x1E) >> 1);
+        immed |= ((imm2 & 0x3F) << 4);
+        immed |= ((imm1 & 0x1) << 10);
+        immed |= (((imm2 & 0x40) >> 6) << 11);
+        ImmediateSign(12);
+        immed *= 2;
+        // Setting control signals
+        if(func3 == 0x0) {
+            message = "This is BEQ instruction.";
+            ALUOp[12] = 1;
+        }
+        else if(func3 == 0x1) {
+            message = "This is BNE instruction.";
+            ALUOp[13] = 1;
+        }
+        else if(func3 == 0x4) {
+            message = "This is BLT instruction.";
+            ALUOp[14] = 1;
+        }
+        else {
+            std::cout << "Invalid func3 for SB format.";
+            return;
+        }
+        GenerateControlSignals(0,0,0,0,0,0,1,1,0);
+    }
+    else if(opcode == 23 || opcode == 55) { // U format
+        RD = (IR & 0xF80) >> 7;
+        immed = (IR & 0xFFFFF000) >> 12;
+        ImmediateSign(20);
+        if(opcode == 23) { // AUIPC
+            message = "This is AUIPC instruction.";
+            ALUOp[0] = 1;
+            RA = PC;
+            immed = immed << 12;
+        }
+        else { // LUI
+            message = "This is LUI instruction.";
+            ALUOp[6] = 1;
+            RA = immed;
+            immed = 12;
+        }
+        GenerateControlSignals(1,1,0,0,0,0,1,0,0);
+    }
+    else if(opcode == 111) { // UJ format
+        message = "This is JALR instruction.";
+        RD = (IR & 0xF80) >> 7;
+        long long immed_tmp = (IR & 0xFFFFF000) >> 12;
+        immed = 0;
+        immed |= (immed_tmp & 0x7FE00) >> 9;
+        immed |= (immed_tmp & 0x100) << 2;
+        immed |= (immed_tmp & 0xFF) << 11;
+        immed |= (immed_tmp & 0x80000) >> 20;
+        // ImmediateSign(20);
+        immed *= 2;
+        ALUOp[12] = 1;
+        RA = 0;
+        RB = 0;
+        GenerateControlSignals(1,0,2,0,0,0,1,1,0);
+    }
+    else 
+        std::cout << "Invalid opcode.";
+    printf(message);
 }

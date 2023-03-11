@@ -96,7 +96,7 @@ void fetch() {
 }
 
 void ImmediateSign(int num) {
-    if(immed & ((1 << num) - 1) == 0)
+    if((immed & ((1 << num) - 1)) == 0)
         return;
     immed ^= (1 << num) - 1;
     immed += 1;
@@ -159,10 +159,10 @@ void Decode() {
 
     long long func3, func7;
     std::string message = "";
-
+    
     opcode = IR & 0x7f;                     // Finding Opcode
     func3 = (IR & 0x7000) >> 12;            // Finding Func3
-
+ 
 
     if(opcode == 51){
         // R Format
@@ -459,5 +459,138 @@ void Decode() {
     }
     else 
         std::cout << "Invalid opcode.";
-    printf(message);
+    std::cout<<message<<std::endl;
+}
+
+
+
+
+// ---------------------------------------------FLOWCHART---------------------------------------------//
+/*
+                                                R TYPE
+OPCODE          func3           func7       Instruction    ALUop(ON)
+0110011          0x0            0x00            add         0
+0110011          0x0            0x20            sub         1
+0110011          0x0            0x01            mul         3
+0110011          0x7            0x00            and         10
+0110011          0x6            0x00            or          9
+0110011          0x6            0x01            rem         4
+0110011          0x1            0x00            sll         6
+0110011          0x2            0x00            slt         11
+0110011          0x5            0x00            srl         8
+0110011          0x5            0x20            sra         7
+0110011          0x4            0x00            xor         5
+0110011          0x4            0x01            div         2
+                                                I TYPE
+OPCODE          func3           Instruction
+0000011          0x0                lb
+0000011          0x1                lh
+0000011          0x2                lw
+0010011          0x0                addi
+0010011          0x7                andi
+0010011          0x6                ori
+1100111          0x0                jalr
+                                                S TYPE
+OPCODE          func3           Instruction
+0100011          0x0                sb
+0100011          0x1                sh
+0100011          0x2                sw
+*/
+
+// ---------------------------------------------------------------------------------------------------//
+
+
+
+
+void Execute()
+{
+    long long i=0;
+    if(MuxB_select==1)
+    {
+        RB=immed;
+    }
+    
+    for(auto &val :ALUOp)
+    {
+        if(val==1)
+        {
+            switch (i)
+            {
+                case 0:
+                {
+                    RZ=RA+RB;
+                    break;
+                }
+                case 1:
+                {
+                    RZ=RA-RB;
+                    break;
+                }
+                case 2:
+                {
+                    if(RB!=0)//checking denominator!=0
+                        RZ=RA/RB;
+                    break;
+                }
+                case 3:
+                {
+                    RZ=RA*RB;
+                    break;
+                }
+                case 4:
+                {
+                    RZ=RA%RB;
+                    break;
+                }
+                case 5:
+                {
+                    RZ=RA^RB;
+                    break;
+                }
+                case 6:
+                {
+                    RZ=RA<<RB;
+                    break;
+                }
+                case 7:
+                {
+                    RZ=RA>>RB;
+                    break;
+                }
+                case 8:
+                {
+                    RZ=RA>>RB;
+                    break;
+                }
+                case 9:
+                {
+                    RZ=RA|RB;
+                    break;
+                }
+                case 10:
+                {
+                    RZ=RA&RB;
+                    break;
+                }
+                case 11:
+                {
+                    if(RA<RB)
+                    {
+                        RZ=1;
+                    }
+                    else
+                    {
+                        RZ=0;
+                    }
+                    break;
+                }
+                        
+                default:
+                {
+                    break;
+                }
+            }
+        }
+        i++;
+    }
 }

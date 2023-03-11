@@ -502,13 +502,16 @@ OPCODE          func3           Instruction
 
 
 
-void Execute()
+int Execute()
 {
     long long i=0;
+    long long InA, InB;
+    InA = RA;
     if(MuxB_select==1)
     {
-        RB=immed;
+        InB=immed;
     }
+    else InB = RB;
     
     for(auto &val :ALUOp)
     {
@@ -518,58 +521,65 @@ void Execute()
             {
                 case 0:
                 {
-                    RZ=RA+RB;
+                    RZ=InA + InB;
                     break;
                 }
                 case 1:
                 {
-                    RZ=RA-RB;
+                    RZ=InA-InB;
                     break;
                 }
                 case 2:
                 {
-                    if(RB!=0)//checking denominator!=0
-                        RZ=RA/RB;
+                    if(RB==0)//checking denominator!=0
+                        return 1;
+                    RZ = InA/InB;
                     break;
                 }
                 case 3:
                 {
-                    RZ=RA*RB;
+                    RZ=InA * InB;
                     break;
                 }
                 case 4:
                 {
-                    RZ=RA%RB;
+                    if(InB==0)
+                        return 1;
+                    RZ=InA % InB;
                     break;
                 }
                 case 5:
                 {
-                    RZ=RA^RB;
+                    RZ=InA ^ InB;
                     break;
                 }
                 case 6:
                 {
-                    RZ=RA<<RB;
+                    if(InB < 0) 
+                        return 1;
+                    RZ=InA<<InB;
                     break;
                 }
                 case 7:
                 {
-                    RZ=RA>>RB;
+                    
                     break;
                 }
                 case 8:
                 {
-                    RZ=RA>>RB;
+                    if(InB<0) 
+                        return 1;
+                    RZ=InA>>InB;
                     break;
                 }
                 case 9:
                 {
-                    RZ=RA|RB;
+                    RZ=InA|InB;
                     break;
                 }
                 case 10:
                 {
-                    RZ=RA&RB;
+                    RZ=InA&InB;
                     break;
                 }
                 case 11:
@@ -582,9 +592,27 @@ void Execute()
                     {
                         RZ=0;
                     }
+                    MuxINC_select = RZ;
                     break;
                 }
-                        
+                case 12:
+                {
+                    RZ = (InA==InB);
+                    MuxINC_select = RZ;
+                    break;
+                }  
+                case 13:
+                {
+                    RZ = (InA!=InB);
+                    MuxINC_select = RZ;
+                    break;
+                } 
+                case 14:
+                {
+                    RZ = (InA>=InB);
+                    MuxINC_select = RZ;
+                    break;
+                }
                 default:
                 {
                     break;
@@ -593,4 +621,5 @@ void Execute()
         }
         i++;
     }
+    return 0;
 }

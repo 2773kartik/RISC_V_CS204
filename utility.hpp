@@ -359,8 +359,8 @@ void Decode() {
             return;
         }
 
-        RA = reg[RS2];      // Setting RA
-        RB = reg[RS1];      // Setting RB
+        RA = reg[RS1];      // Setting RA
+        RB = reg[RS2];      // Setting RB
         RM = RB;            // Setting RM
     }
     else if(opcode == 99) { // B format
@@ -439,7 +439,6 @@ void Decode() {
     }
     else 
         std::cout << "Invalid opcode.";
-
 }
 
 

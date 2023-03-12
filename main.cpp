@@ -7,13 +7,13 @@
 
 using namespace std;
 
-unsigned long long reg[32] = {0};
-unsigned long long RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
-unsigned long long ALUOp[15] = {0};
-unsigned long long ui, clk;
-unsigned long long stepClick = 0;
-std::map<unsigned long long, std::vector<unsigned long long>> dataMemory;
-std::map<unsigned long long, std::vector<std::string>> instructionMemory;
+long long reg[32] = {0};
+long long RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
+long long ALUOp[15] = {0};
+long long ui, clk;
+long long stepClick = 0;
+std::map<long long  , std::vector<long long  >> dataMemory;
+std::map<long long  , std::vector<std::string>> instructionMemory;
 
 bool validateDataSegment(vector<string> a);
 bool validateInstruction(vector<string> a);
@@ -41,7 +41,7 @@ int main() {
                 mcFile.close();
                 return 1;
             }
-            unsigned long long x1 = strtoull(x[0].c_str(), nullptr, 16);
+            long long x1 = strtoull(x[0].c_str(), nullptr, 16);
             dataMemory[x1].push_back((strtoull(x[1].c_str(), nullptr, 16)) & strtoull("0xFF", nullptr, 16));
             dataMemory[x1].push_back(((strtoull(x[1].c_str(), nullptr, 16)) & strtoull("0xFF00", nullptr, 16))>>8);
             dataMemory[x1].push_back(((strtoull(x[1].c_str(), nullptr, 16)) & strtoull("0xFF0000", nullptr, 16))>>16);
@@ -54,7 +54,7 @@ int main() {
                 mcFile.close();
                 return 1;
             }
-            unsigned long long x1 = strtoull(x[0].c_str(), nullptr, 16);
+            long long x1 = strtoull(x[0].c_str(), nullptr, 16);
             for(int i = 0; i < 4; ++i) {
                 string temps = "0xFF";
                 for(int j = 0; j < 2*i; ++j) temps+="0";
@@ -71,7 +71,6 @@ int main() {
     for(auto it:dataMemory) {out<<hex(it.first)<<" "; for(auto j:it.second) out<<j<<" "; out<<"\n";}
     mcFile.close();
     out.close();
-
 
     return 0;
 }

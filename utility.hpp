@@ -3,19 +3,19 @@
 #include<vector>
 #include<string>
 #include<algorithm>
-extern unsigned long long reg[32];
-extern unsigned long long RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
-extern unsigned long long ALUOp[15];
-extern unsigned long long ui, clk;
-extern unsigned long long stepClick;
-extern std::map<unsigned long long, std::vector<unsigned long long>> dataMemory;
-extern std::map<unsigned long long, std::vector<std::string>> instructionMemory;
+extern long long  reg[32];
+extern long long  RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
+extern long long  ALUOp[15];
+extern long long  ui, clk;
+extern long long  stepClick;
+extern std::map<long long , std::vector<long long >> dataMemory;
+extern std::map<long long , std::vector<std::string>> instructionMemory;
 
-// Utility function to convert unsigned long long integer to hexadecimal string
-std::string hex(unsigned long long n) {
+// Utility function to convert long long  integer to hexadecimal string
+std::string hex(long long  n) {
     std::string ans = "";
     while (n != 0) {
-        unsigned long long rem = 0;
+        long long  rem = 0;
         char ch;
         rem = n % 16;
         if (rem < 10) {
@@ -42,26 +42,26 @@ void init() {
 std::string ProcessorMemoryInterface() {
     if(MuxMA_select == 0) {
         if(Mem_Read==1) {
-            std::vector<unsigned long long> t;
-            for(unsigned long long i = 0; i < numBytes; ++i) {
+            std::vector<long long > t;
+            for(long long  i = 0; i < numBytes; ++i) {
                 t.push_back(dataMemory[MAR][i]);
             }
             reverse(t.begin(), t.end());
             std::string ans = "0x";
             for(auto i:t) {
                 std::string curr = hex(i);
-                for(unsigned long long j = 0; j < 2-curr.size(); j++) ans+="0";
+                for(long long  j = 0; j < 2-curr.size(); j++) ans+="0";
                 ans+=curr;
             }
             return ans;
         }
         else if(Mem_Write==1) {
             
-            for(unsigned long long i = 0; i < numBytes; ++i) {
+            for(long long  i = 0; i < numBytes; ++i) {
                 
                 std::string temp = "0xFF";
-                for(unsigned long long j = 0; j < 2*i; j++) temp+="0";
-                unsigned long long x = std::strtoull(temp.c_str(), nullptr, 16);
+                for(long long  j = 0; j < 2*i; j++) temp+="0";
+                long long  x = std::strtoull(temp.c_str(), nullptr, 16);
                 if(dataMemory.find(MAR)!=dataMemory.end()) dataMemory[MAR][i] = (MDR & x)>>(8*i);
                 else {
                     dataMemory[MAR].push_back((MDR & x)>>(8*i));
@@ -74,15 +74,15 @@ std::string ProcessorMemoryInterface() {
     else {
         std::vector<std::string> t = instructionMemory[MAR];
         std::string ans = "";
-        unsigned long long x = t.size();
-        for(unsigned long long i = 0; i < x; ++i) ans+=(t[x-1-i]);
+        long long  x = t.size();
+        for(long long  i = 0; i < x; ++i) ans+=(t[x-1-i]);
         ans = "0x"+ans;
         return ans;
     }
     return "";
 }
 
-void GenerateControlSignals(unsigned long long reg_write,unsigned long long MuxB,unsigned long long MuxY,unsigned long long MemRead,unsigned long long MemWrite,unsigned long long MuxMA,unsigned long long MuxPC,unsigned long long MuxINC,unsigned long long numB){
+void GenerateControlSignals(long long  reg_write,long long  MuxB,long long  MuxY,long long  MemRead,long long  MemWrite,long long  MuxMA,long long  MuxPC,long long  MuxINC,long long  numB){
     RF_Write = reg_write;
     MuxB_select = MuxB;
     MuxY_select = MuxY;
@@ -96,6 +96,7 @@ void GenerateControlSignals(unsigned long long reg_write,unsigned long long MuxB
 
 void fetch() {
     MAR = strtoull(("0x"+hex(PC)).c_str(), nullptr, 16);
+    // std::cout<<hex(IR)<<"  "<<hex(PC)<<std::endl;
     MuxMA_select = 1;
     IR = strtoull(ProcessorMemoryInterface().c_str(), nullptr, 16);
     PC_Temp = PC+4;
@@ -113,7 +114,7 @@ void Decode() {
 
     for(auto &i : ALUOp) i = 0; 
 
-    unsigned long long func3, func7;
+    long long  func3, func7;
     std::string message = "";
     
     opcode = IR & 0x7f;                     // Finding Opcode
@@ -290,6 +291,22 @@ void Decode() {
                 message = "This is ori Instruction.";
                 ALUOp[9] = 1;
             }
+            else if(func3 == 0x6){
+                // xori Instruction
+                message = "This is xori Instruction.";
+                ALUOp[5] = 1;
+            }
+            else if(func3 == 0x1){
+                // slli Instruction
+                message = "This is slli Instruction.";
+                ALUOp[6] = 1;
+            }
+            else if(func3 == 0x5){
+                // srli Instruction
+                message = "This is srli Instruction.";
+                ALUOp[8] = 1;
+            }
+
             else{
                 std::cout << "Invalid func3 for addi/andi/ori";
                 return;
@@ -317,8 +334,8 @@ void Decode() {
 
         RS1 = (IR & 0xF8000) >> 15;                 // Setting Source1 Register
         RS2 = (IR & 0x1F00000) >> 20;               // Setting Source2 Register
-        unsigned long long immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
-        unsigned long long immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
+        long long  immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
+        long long  immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
         immed = immed_4to0 | immed_11to5;           // Setting immediate
         ImmediateSign(12);  
         ALUOp[0] = 1;
@@ -351,8 +368,8 @@ void Decode() {
         RS2 = (IR & 0x1F00000) >> 20;  // Setting Source2 Register
         RA = reg[RS1];  // Setting RA
         RB = reg[RS2];  // Setting RB
-        unsigned long long imm1 = (IR & 0xF80) >> 7;
-        unsigned long long imm2 = (IR & 0x7E000000) >> 25;
+        long long  imm1 = (IR & 0xF80) >> 7;
+        long long  imm2 = (IR & 0x7E000000) >> 25;
         immed = 0;
         immed |= ((imm1 & 0x1E) >> 1);
         immed |= ((imm2 & 0x3F) << 4);
@@ -407,7 +424,7 @@ void Decode() {
     else if(opcode == 111) { // UJ format
         message = "This is JALR instruction.";
         RD = (IR & 0xF80) >> 7;
-        unsigned long long immed_tmp = (IR & 0xFFFFF000) >> 12;
+        long long  immed_tmp = (IR & 0xFFFFF000) >> 12;
         immed = 0;
         immed |= (immed_tmp & 0x7FE00) >> 9;
         immed |= (immed_tmp & 0x100) << 2;
@@ -467,8 +484,8 @@ OPCODE          func3           Instruction
 
 int Execute()
 {
-    unsigned long long i=0;
-    unsigned long long InA, InB;
+    long long  i=0;
+    long long  InA, InB;
     InA = RA;
     if(MuxB_select==1)
     {

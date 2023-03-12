@@ -62,10 +62,8 @@ std::string ProcessorMemoryInterface() {
                 std::string temp = "0xFF";
                 for(unsigned long long j = 0; j < 2*i; j++) temp+="0";
                 unsigned long long x = std::strtoull(temp.c_str(), nullptr, 16);
-                // std::cout<<x<<" "<<MAR<<" "<<MDR<<"  lol\n";
                 if(dataMemory.find(MAR)!=dataMemory.end()) dataMemory[MAR][i] = (MDR & x)>>(8*i);
                 else {
-                    // dataMemory[MAR] = std::vector <unsigned long long > 
                     dataMemory[MAR].push_back((MDR & x)>>(8*i));
                 }
                 
@@ -110,55 +108,6 @@ void ImmediateSign(int num) {
     immed += 1;
     immed *= -1;
 }
-
-// ---------------------------------------------FLOWCHART---------------------------------------------//
-/*          
-                                                R TYPE
-
-OPCODE          func3           func7       Instruction
-0110011          0x0            0x00            add
-0110011          0x0            0x20            sub
-0110011          0x0            0x01            mul
-
-0110011          0x7            0x00            and
-
-0110011          0x6            0x00            or
-0110011          0x6            0x01            rem
-
-0110011          0x1            0x00            sll
-
-0110011          0x2            0x00            slt
-
-0110011          0x5            0x00            srl
-0110011          0x5            0x20            sra
-
-0110011          0x4            0x00            xor
-0110011          0x4            0x01            div
-
-                                                I TYPE
-
-OPCODE          func3           Instruction
-0000011          0x0                lb
-0000011          0x1                lh
-0000011          0x2                lw
-
-0010011          0x0                addi
-0010011          0x7                andi
-0010011          0x6                ori
-
-
-1100111          0x0                jalr
-
-                                                S TYPE
-
-OPCODE          func3           Instruction
-0100011          0x0                sb
-0100011          0x1                sh
-0100011          0x2                sw
-
-*/
-
-// ---------------------------------------------------------------------------------------------------//
 
 void Decode() {
 

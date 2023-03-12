@@ -3,19 +3,19 @@
 #include<vector>
 #include<string>
 #include<algorithm>
-extern long long reg[32];
-extern long long RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
-extern long long ALUOp[15];
-extern long long ui, clk;
-extern long long stepClick;
-extern std::map<long long, std::vector<long long>> dataMemory;
-extern std::map<long long, std::vector<std::string>> instructionMemory;
+extern unsigned long long reg[32];
+extern unsigned long long RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read;
+extern unsigned long long ALUOp[15];
+extern unsigned long long ui, clk;
+extern unsigned long long stepClick;
+extern std::map<unsigned long long, std::vector<unsigned long long>> dataMemory;
+extern std::map<unsigned long long, std::vector<std::string>> instructionMemory;
 
-// Utility function to convert long long integer to hexadecimal string
-std::string hex(long long n) {
+// Utility function to convert unsigned long long integer to hexadecimal string
+std::string hex(unsigned long long n) {
     std::string ans = "";
     while (n != 0) {
-        long long rem = 0;
+        unsigned long long rem = 0;
         char ch;
         rem = n % 16;
         if (rem < 10) {
@@ -42,25 +42,31 @@ void init() {
 std::string ProcessorMemoryInterface() {
     if(MuxMA_select == 0) {
         if(Mem_Read==1) {
-            std::vector<long long> t;
-            for(long long i = 0; i < numBytes; ++i) {
+            std::vector<unsigned long long> t;
+            for(unsigned long long i = 0; i < numBytes; ++i) {
                 t.push_back(dataMemory[MAR][i]);
             }
             reverse(t.begin(), t.end());
             std::string ans = "0x";
             for(auto i:t) {
                 std::string curr = hex(i);
-                for(long long j = 0; j < 2-curr.size(); j++) ans+="0";
+                for(unsigned long long j = 0; j < 2-curr.size(); j++) ans+="0";
                 ans+=curr;
             }
             return ans;
         }
         else if(Mem_Write==1) {
-            for(long long i = 0; i < numBytes; ++i) {
+            
+            for(unsigned long long i = 0; i < numBytes; ++i) {
+                
                 std::string temp = "0xFF";
-                for(long long j = 0; j < 2*i; j++) temp+="0";
-                long long x = std::strtoll(temp.c_str(), nullptr, 16);
-                dataMemory[MAR][i] = (MDR & x)>>(8*i);
+                for(unsigned long long j = 0; j < 2*i; j++) temp+="0";
+                unsigned long long x = std::strtoull(temp.c_str(), nullptr, 16);
+                if(dataMemory.find(MAR)!=dataMemory.end()) dataMemory[MAR][i] = (MDR & x)>>(8*i);
+                else {
+                    dataMemory[MAR].push_back((MDR & x)>>(8*i));
+                }
+                
             }
             return "0x1";
         }
@@ -68,15 +74,15 @@ std::string ProcessorMemoryInterface() {
     else {
         std::vector<std::string> t = instructionMemory[MAR];
         std::string ans = "";
-        long long x = t.size();
-        for(long long i = 0; i < x; ++i) ans+=(t[x-1-i]);
+        unsigned long long x = t.size();
+        for(unsigned long long i = 0; i < x; ++i) ans+=(t[x-1-i]);
         ans = "0x"+ans;
         return ans;
     }
     return "";
 }
 
-void GenerateControlSignals(long long reg_write,long long MuxB,long long MuxY,long long MemRead,long long MemWrite,long long MuxMA,long long MuxPC,long long MuxINC,long long numB){
+void GenerateControlSignals(unsigned long long reg_write,unsigned long long MuxB,unsigned long long MuxY,unsigned long long MemRead,unsigned long long MemWrite,unsigned long long MuxMA,unsigned long long MuxPC,unsigned long long MuxINC,unsigned long long numB){
     RF_Write = reg_write;
     MuxB_select = MuxB;
     MuxY_select = MuxY;
@@ -89,79 +95,30 @@ void GenerateControlSignals(long long reg_write,long long MuxB,long long MuxY,lo
 }
 
 void fetch() {
-    MAR = strtoll(("0x"+hex(PC)).c_str(), nullptr, 16);
+    MAR = strtoull(("0x"+hex(PC)).c_str(), nullptr, 16);
     MuxMA_select = 1;
-    IR = strtoll(ProcessorMemoryInterface().c_str(), nullptr, 16);
+    IR = strtoull(ProcessorMemoryInterface().c_str(), nullptr, 16);
     PC_Temp = PC+4;
 }
 
 void ImmediateSign(int num) {
-    if((immed & ((1 << num) - 1)) == 0)
+    if((immed & ((1ULL << (num-1)))) == 0)
         return;
-    immed ^= (1 << num) - 1;
+    immed ^= (1ULL << num) - 1;
     immed += 1;
     immed *= -1;
 }
-
-// ---------------------------------------------FLOWCHART---------------------------------------------//
-/*          
-                                                R TYPE
-
-OPCODE          func3           func7       Instruction
-0110011          0x0            0x00            add
-0110011          0x0            0x20            sub
-0110011          0x0            0x01            mul
-
-0110011          0x7            0x00            and
-
-0110011          0x6            0x00            or
-0110011          0x6            0x01            rem
-
-0110011          0x1            0x00            sll
-
-0110011          0x2            0x00            slt
-
-0110011          0x5            0x00            srl
-0110011          0x5            0x20            sra
-
-0110011          0x4            0x00            xor
-0110011          0x4            0x01            div
-
-                                                I TYPE
-
-OPCODE          func3           Instruction
-0000011          0x0                lb
-0000011          0x1                lh
-0000011          0x2                lw
-
-0010011          0x0                addi
-0010011          0x7                andi
-0010011          0x6                ori
-
-
-1100111          0x0                jalr
-
-                                                S TYPE
-
-OPCODE          func3           Instruction
-0100011          0x0                sb
-0100011          0x1                sh
-0100011          0x2                sw
-
-*/
-
-// ---------------------------------------------------------------------------------------------------//
 
 void Decode() {
 
     for(auto &i : ALUOp) i = 0; 
 
-    long long func3, func7;
+    unsigned long long func3, func7;
     std::string message = "";
     
     opcode = IR & 0x7f;                     // Finding Opcode
     func3 = (IR & 0x7000) >> 12;            // Finding Func3
- 
+    
 
     if(opcode == 51){
         // R Format
@@ -360,8 +317,8 @@ void Decode() {
 
         RS1 = (IR & 0xF8000) >> 15;                 // Setting Source1 Register
         RS2 = (IR & 0x1F00000) >> 20;               // Setting Source2 Register
-        long long immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
-        long long immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
+        unsigned long long immed_4to0 = (IR & 0xF80) >> 7;         // Extracting immediate[4:0]
+        unsigned long long immed_11to5 = (IR & 0xFE000000) >> 25;  // Extracting immediate[11:5]
         immed = immed_4to0 | immed_11to5;           // Setting immediate
         ImmediateSign(12);  
         ALUOp[0] = 1;
@@ -394,8 +351,8 @@ void Decode() {
         RS2 = (IR & 0x1F00000) >> 20;  // Setting Source2 Register
         RA = reg[RS1];  // Setting RA
         RB = reg[RS2];  // Setting RB
-        long long imm1 = (IR & 0xF80) >> 7;
-        long long imm2 = (IR & 0x7E000000) >> 25;
+        unsigned long long imm1 = (IR & 0xF80) >> 7;
+        unsigned long long imm2 = (IR & 0x7E000000) >> 25;
         immed = 0;
         immed |= ((imm1 & 0x1E) >> 1);
         immed |= ((imm2 & 0x3F) << 4);
@@ -414,6 +371,11 @@ void Decode() {
         }
         else if(func3 == 0x4) {
             message = "This is BLT instruction.";
+            ALUOp[11] = 1;
+        }
+        else if(func3 == 0x5)
+        {
+            message = "This is BGE instruction.";
             ALUOp[14] = 1;
         }
         else {
@@ -425,6 +387,7 @@ void Decode() {
     else if(opcode == 23 || opcode == 55) { // U format
         RD = (IR & 0xF80) >> 7;
         immed = (IR & 0xFFFFF000) >> 12;
+       
         ImmediateSign(20);
         if(opcode == 23) { // AUIPC
             message = "This is AUIPC instruction.";
@@ -438,12 +401,13 @@ void Decode() {
             RA = immed;
             immed = 12;
         }
+         
         GenerateControlSignals(1,1,0,0,0,0,1,0,0);
     }
     else if(opcode == 111) { // UJ format
         message = "This is JALR instruction.";
         RD = (IR & 0xF80) >> 7;
-        long long immed_tmp = (IR & 0xFFFFF000) >> 12;
+        unsigned long long immed_tmp = (IR & 0xFFFFF000) >> 12;
         immed = 0;
         immed |= (immed_tmp & 0x7FE00) >> 9;
         immed |= (immed_tmp & 0x100) << 2;
@@ -458,7 +422,7 @@ void Decode() {
     }
     else 
         std::cout << "Invalid opcode.";
-    std::cout<<message<<std::endl;
+
 }
 
 
@@ -503,8 +467,8 @@ OPCODE          func3           Instruction
 
 int Execute()
 {
-    long long i=0;
-    long long InA, InB;
+    unsigned long long i=0;
+    unsigned long long InA, InB;
     InA = RA;
     if(MuxB_select==1)
     {
@@ -637,14 +601,18 @@ void IAG() {
 
 void MemoryAccess() {
     IAG();
-    if(MuxY_select == 0)
+    if(MuxY_select == 0){
+        
         RY = RZ;
+    }
     else if(MuxY_select == 1) {
-        MAR = strtoll(("0x"+hex(RZ)).c_str(), nullptr, 16);
+        MAR = strtoull(("0x"+hex(RZ)).c_str(), nullptr, 16);
         MDR = RM;
-        RY = strtoll(ProcessorMemoryInterface(), nullptr, 16);
-        if(RY > (1 << 31) - 1)
-            RY -= (1 << 32);
+        RY = strtoull((ProcessorMemoryInterface()).c_str(), nullptr, 16);
+        
+        if(RY > ((1ULL << 31) - 1))
+            RY = -((1ULL << 32)-RY);
+        
     }
     else if(MuxY_select == 2) 
         RY = PC_Temp;

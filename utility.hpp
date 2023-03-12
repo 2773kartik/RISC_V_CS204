@@ -103,7 +103,6 @@ void ImmediateSign(int num) {
     immed *= -1;
 }
 
-
 // ---------------------------------------------FLOWCHART---------------------------------------------//
 /*          
                                                 R TYPE
@@ -622,4 +621,36 @@ int Execute()
         i++;
     }
     return 0;
+}
+
+// PC Update
+void IAG() {
+    if(MuxPC_select == 0)
+        PC = RA;
+    else {
+        if(MuxINC_select == 0)
+            PC += 4;
+        else
+            PC += immed;
+    }
+}
+
+void MemoryAccess() {
+    IAG();
+    if(MuxY_select == 0)
+        RY = RZ;
+    else if(MuxY_select == 1) {
+        MAR = strtoll(("0x"+hex(RZ)).c_str(), nullptr, 16);
+        MDR = RM;
+        RY = strtoll(ProcessorMemoryInterface(), nullptr, 16);
+        if(RY > (1 << 31) - 1)
+            RY -= (1 << 32);
+    }
+    else if(MuxY_select == 2) 
+        RY = PC_Temp;
+}
+
+void RegisterUpdate() {
+    if(RF_Write == 1 && RD != 0)
+        reg[RD] = RY;
 }

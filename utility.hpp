@@ -363,7 +363,7 @@ void Decode() {
         RB = reg[RS1];      // Setting RB
         RM = RB;            // Setting RM
     }
-    else if(opcode == 99) { // SB format
+    else if(opcode == 99) { // B format
         RS1 = (IR & 0xF8000) >> 15;  // Setting Source1 Register
         RS2 = (IR & 0x1F00000) >> 20;  // Setting Source2 Register
         RA = reg[RS1];  // Setting RA
@@ -375,7 +375,7 @@ void Decode() {
         immed |= ((imm2 & 0x3F) << 4);
         immed |= ((imm1 & 0x1) << 10);
         immed |= (((imm2 & 0x40) >> 6) << 11);
-        ImmediateSign(12);
+        ImmediateSign(11);
         immed *= 2;
         // Setting control signals
         if(func3 == 0x0) {

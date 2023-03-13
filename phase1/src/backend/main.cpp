@@ -66,6 +66,7 @@ int main() {
         }
     }
     mcFile.close();
+    
     run_RISC_simulator();
     return 0;
 }
@@ -104,6 +105,7 @@ bool validateInstruction(vector<string> a) {
 }
 
 void run_RISC_simulator() {
+    init();
     bool flag = 1;
     ofstream out("output.txt");
     ofstream json("out.json");
@@ -122,7 +124,7 @@ void run_RISC_simulator() {
             flag=0;
         }
         json<<"\t\t\"PC\":"<<PC<<",\n";
-        json<<"\t\t\"Reg\": ["; for(int i = 0; i < 31; ++i) json<<reg[i]<<", "; json<<reg[31]<<"],\n";
+        json<<"\t\t\"Reg\": ["; for(auto &val:reg) json<<val<<", "; json<<reg[31]<<"],\n";
         json<<"\t\t\"Message\": \""<<msg<<"\",\n";
         json<<"\t\t\"Data\": {\n";
         for(auto it:dataMemory) {

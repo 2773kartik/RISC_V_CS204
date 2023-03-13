@@ -58,8 +58,8 @@ std::string ProcessorMemoryInterface() {
             std::string ans = "0x";
             for(auto i:t) {
                 std::string curr = hex(i);
-                if(curr.size()<=2)
-                for(long long  j = 0; j <= 2-curr.size(); j++) ans+="0";
+                if(curr.size()<2)
+                for(long long  j = 0; j < 2-curr.size(); j++) ans+="0";
                 ans+=curr;
             }
             return ans;
@@ -73,8 +73,8 @@ std::string ProcessorMemoryInterface() {
                 long long  x = std::strtoull(temp.c_str(), nullptr, 16);
                 if(dataMemory.find(MAR)!=dataMemory.end()) dataMemory[MAR][i] = (MDR & x)>>(8*i);
                 else {
-                    for(int nn = 0; nn < 4; ++nn) dataMemory[MAR].push_back(0);
-                    dataMemory[MAR][i] = (MDR & x)>>(8*i);
+                    for(long long nn=0;nn<numBytes;++nn)dataMemory[MAR].push_back(0);
+                    dataMemory[MAR][i]=((MDR & x)>>(8*i));
                 }
                 
             }
@@ -242,7 +242,7 @@ std::string Decode() {
             }
         }
         else{
-            std::cerr << "Func3 not matching in R format";
+            std::cout << "Func3 not matching in R format";
             return "";
         }
 

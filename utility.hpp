@@ -34,7 +34,7 @@ std::string hex(long long  n) {
 void init() {
     for(auto &i : ALUOp) i = 0;
     for(auto &i : reg) i = 0;
-    reg[2] = 0x7FFFFFF0;    //sp -> Stack polonger
+    reg[2] = 0x7FFFFFDC;    //sp -> Stack polonger
     reg[3] = 0x10000000;    //data pointer
     RS1 = RS2 = RD = RM = RZ = RY = RA = RB = PC = IR = MuxB_select = MuxC_select = MuxINC_select = MuxY_select = MuxPC_select = MuxMA_select = RegFileAddrA = RegFileAddrB = RegFileAddrC = RegFileInp = RegFileAOut = RegFileBOut = MAR = MDR = opcode = numBytes = RF_Write = immed = PC_Temp = Mem_Write = Mem_Read = 0;
 }
@@ -44,12 +44,21 @@ std::string ProcessorMemoryInterface() {
         if(Mem_Read==1) {
             std::vector<long long > t;
             for(long long  i = 0; i < numBytes; ++i) {
+                if(dataMemory.find(MAR)!=dataMemory.end())
+                {
+                if(i<dataMemory[MAR].size())
                 t.push_back(dataMemory[MAR][i]);
+                else
+                t.push_back(0);
+                }
+                else
+                t.push_back(0);
             }
             reverse(t.begin(), t.end());
             std::string ans = "0x";
             for(auto i:t) {
                 std::string curr = hex(i);
+                if(curr.size()<2)
                 for(long long  j = 0; j < 2-curr.size(); j++) ans+="0";
                 ans+=curr;
             }
@@ -96,13 +105,13 @@ void GenerateControlSignals(long long  reg_write,long long  MuxB,long long  MuxY
 
 void fetch() {
     MAR = strtoull(("0x"+hex(PC)).c_str(), nullptr, 16);
-    // std::cout<<hex(IR)<<"  "<<hex(PC)<<std::endl;
     MuxMA_select = 1;
     IR = strtoull(ProcessorMemoryInterface().c_str(), nullptr, 16);
     PC_Temp = PC+4;
 }
 
 void ImmediateSign(int num) {
+    num--;
     if((immed & ((1ULL << (num-1)))) == 0)
         return;
     immed ^= (1ULL << num) - 1;
@@ -246,7 +255,6 @@ void Decode() {
         RD = (IR & 0xF80) >> 7;             // Setting Destination Register
         RS1 = (IR & 0xF8000) >> 15;         // Setting Source1 Register
         immed = (IR & 0xFFF00000) >> 20;    // Setting Immediate value
-
         if(immed > 2047) immed -= 4096;     // Constraint on Immediate
 
         if(opcode == 3){    // lb/lh/lw
@@ -313,6 +321,7 @@ void Decode() {
             }
 
             RA = reg[RS1];
+           
         }
         else if(opcode == 103){ // jalr
             message = "This is JALR Instruction.";
@@ -375,7 +384,7 @@ void Decode() {
         immed |= ((imm2 & 0x3F) << 4);
         immed |= ((imm1 & 0x1) << 10);
         immed |= (((imm2 & 0x40) >> 6) << 11);
-        ImmediateSign(11);
+        ImmediateSign(12);
         immed *= 2;
         // Setting control signals
         if(func3 == 0x0) {
@@ -421,8 +430,8 @@ void Decode() {
          
         GenerateControlSignals(1,1,0,0,0,0,1,0,0);
     }
-    else if(opcode == 111) { // UJ format
-        message = "This is JALR instruction.";
+    else if(opcode == 111) { // J format
+        message = "This is JAL instruction.";
         RD = (IR & 0xF80) >> 7;
         long long  immed_tmp = (IR & 0xFFFFF000) >> 12;
         immed = 0;
@@ -430,7 +439,7 @@ void Decode() {
         immed |= (immed_tmp & 0x100) << 2;
         immed |= (immed_tmp & 0xFF) << 11;
         immed |= (immed_tmp & 0x80000) >> 20;
-        // ImmediateSign(20);
+        ImmediateSign(20);
         immed *= 2;
         ALUOp[12] = 1;
         RA = 0;
@@ -439,6 +448,7 @@ void Decode() {
     }
     else 
         std::cout << "Invalid opcode.";
+
 }
 
 
@@ -628,7 +638,6 @@ void MemoryAccess() {
         
         if(RY > ((1ULL << 31) - 1))
             RY = -((1ULL << 32)-RY);
-        
     }
     else if(MuxY_select == 2) 
         RY = PC_Temp;

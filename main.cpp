@@ -71,7 +71,7 @@ int main() {
     for(auto it:dataMemory) {out<<hex(it.first)<<" "; for(auto j:it.second) out<<j<<" "; out<<"\n";}
     mcFile.close();
     out.close();
-
+    
     return 0;
 }
 

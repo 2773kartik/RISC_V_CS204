@@ -133,7 +133,7 @@ void run_RISC_simulator() {
             json.seekp(-3, std::ios_base::end);
             json<<"],\n";
         }
-        json.seekp(-3, std::ios_base::end); json<<"\n";
+        if(!dataMemory.empty()) json.seekp(-3, std::ios_base::end); json<<"\n";
         json<<"\t\t}\n";
         json<<"\t},\n";
         ++i;

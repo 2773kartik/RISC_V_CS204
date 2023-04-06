@@ -1,3 +1,7 @@
+
+from collections import defaultdict
+from sys import exit
+
 class Processor:
 	def __init__(self, file_name):
 		self.MEM = defaultdict(lambda: '00')

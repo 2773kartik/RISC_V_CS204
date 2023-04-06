@@ -34,3 +34,31 @@ def evaluate(processor, pipeline_ins):
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc
+
+if __name__ == '__main__':
+
+	# set .mc file and input knobs
+	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
+
+	# Knobs
+	# pipelining_enabled = True                       # Knob1
+	# forwarding_enabled = False                      # Knob2
+	# print_registers_each_cycle = False              # Knob3
+	# print_pipeline_registers = False    			  # Knob4
+	# print_specific_pipeline_registers = [False, 10] # Knob5
+
+	# invoke classes
+	processor = Processor(prog_mc_file)
+	hdu = HDU()
+	btb = BTB()
+
+	# Signals
+	PC = 0
+	clock_cycles = 0
+	prog_end = False
+
+	# Various Counts
+	number_of_stalls_due_to_control_hazards = 0
+	number_of_data_hazards = 0
+	number_of_stalls_due_to_data_hazards = 0
+	total_number_of_stalls = 0

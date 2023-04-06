@@ -98,3 +98,26 @@ class Processor:
 
 		state.pc_select = 0
 		state.inc_select = 0
+
+	# Reads from the instruction memory and updates the instruction register
+	def fetch(self, state, *args):
+		if state.is_dummy:
+			return
+
+		if self.all_dummy:
+			state.is_dummy = True
+			return
+
+		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
+
+		if not self.pipelining_enabled:
+			return
+
+		btb = args[0]
+
+		if btb.find(state.PC):
+			state.branch_taken = btb.predict(state.PC)
+			if state.branch_taken:
+				state.next_pc = btb.getTarget(state.PC)
+			else:
+				state.next_pc = state.PC + 4

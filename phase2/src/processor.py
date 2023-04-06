@@ -450,3 +450,34 @@ class Processor:
 
 		state.register_data = state.register_data[:2] + \
 			(10 - len(state.register_data)) * '0' + state.register_data[2::]
+		
+	# Performs the memory operations
+	def mem(self, state):
+		if not self.pipelining_enabled:
+			self.IAG(state)
+
+		if state.is_dummy:
+			return
+
+		if state.is_mem[0] == -1:
+			return
+
+		elif state.is_mem[0] == 0:
+			state.register_data = '0x'
+			if state.is_mem[1] == 0:
+				state.register_data += self.MEM[state.memory_address]
+			elif state.is_mem[1] == 1:
+				state.register_data += (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+			else:
+				state.register_data += (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+
+			state.register_data = sign_extend(state.register_data)
+
+		else:
+			if state.is_mem[1] >= 3:
+				self.MEM[state.memory_address + 3] = state.register_data[2:4]
+				self.MEM[state.memory_address + 2] = state.register_data[4:6]
+			if state.is_mem[1] >= 1:
+				self.MEM[state.memory_address + 1] = state.register_data[6:8]
+			if state.is_mem[1] >= 0:
+				self.MEM[state.memory_address] = state.register_data[8:10]

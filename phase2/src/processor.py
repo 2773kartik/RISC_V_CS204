@@ -39,3 +39,25 @@ class Processor:
 			self.pc_select = 0
 			self.pc_offset = 0
 			self.return_address = 0
+	
+	# load_program_memory reads the input memory, and populates the instruction memory
+	def load_program_memory(self, file_name):
+		try:
+			fp = open(file_name, 'r')
+			for line in fp:
+				tmp = line.split()
+				if len(tmp) == 2:
+					address, instruction = tmp[0], tmp[1]
+					self.write_word(address, instruction)
+			fp.close()
+		except:
+			print("ERROR: Error opening input .mc file\n")
+			exit(1)
+
+	# Memory write
+	def write_word(self, address, instruction):
+		idx = int(address[2:], 16)
+		self.MEM[idx] =  instruction[8:10]
+		self.MEM[idx + 1] = instruction[6:8]
+		self.MEM[idx + 2] = instruction[4:6]
+		self.MEM[idx + 3] = instruction[2:4]

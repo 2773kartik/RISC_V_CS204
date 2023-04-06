@@ -481,3 +481,21 @@ class Processor:
 				self.MEM[state.memory_address + 1] = state.register_data[6:8]
 			if state.is_mem[1] >= 0:
 				self.MEM[state.memory_address] = state.register_data[8:10]
+    
+    # Writes the results back to the register file
+	def write_back(self, state):
+		if not state.is_dummy:
+			self.count_total_inst += 1 # total instructions
+
+			if state.alu_control_signal in [19, 23, 24, 25, 26, 29]:  # control instruction
+				self.count_control_inst += 1
+
+			elif state.alu_control_signal in [16, 17, 18, 20, 21, 22]: # data transfer instruction
+				self.count_mem_inst += 1
+
+			else:
+				self.count_alu_inst += 1 # alu instruction
+
+			if state.write_back_signal:
+				if int(state.rd, 2) != 0:
+					self.R[int(state.rd, 2)] = state.register_data

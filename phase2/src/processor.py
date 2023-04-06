@@ -87,3 +87,14 @@ class Processor:
 		except:
 			print("ERROR: Error opening reg_out.mc file for writing\n")
 			exit(1)
+
+	def IAG(self, state):
+		if state.pc_select:
+			self.next_PC = state.return_address
+		elif state.inc_select:
+			self.next_PC += state.pc_offset
+		else:
+			self.next_PC += 4
+
+		state.pc_select = 0
+		state.inc_select = 0

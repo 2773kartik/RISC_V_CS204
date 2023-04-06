@@ -61,3 +61,29 @@ class Processor:
 		self.MEM[idx + 1] = instruction[6:8]
 		self.MEM[idx + 2] = instruction[4:6]
 		self.MEM[idx + 3] = instruction[2:4]
+  
+	# Creates a "data_out.mc" file and writes the data memory in it. It also creates
+	# a reg_out.mc file and writes the contents of registers in it.
+	def write_data_memory(self):
+		try:
+			fp = open("data_out.mc", "w")
+			out_tmp = []
+			for i in range(268435456, 268468221, 4):
+				out_tmp.append(
+					hex(i) + ' 0x' + self.MEM[i + 3] + self.MEM[i + 2] + self.MEM[i + 1] + self.MEM[i] + '\n')
+			fp.writelines(out_tmp)
+			fp.close()
+		except:
+			print("ERROR: Error opening data_out.mc file for writing\n")
+			exit(1)
+
+		try:
+			fp = open("reg_out.mc", "w")
+			out_tmp = []
+			for i in range(32):
+				out_tmp.append('x' + str(i) + ' ' + self.R[i] + '\n')
+			fp.writelines(out_tmp)
+			fp.close()
+		except:
+			print("ERROR: Error opening reg_out.mc file for writing\n")
+			exit(1)
